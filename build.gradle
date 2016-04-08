@@ -1,0 +1,94 @@
+import org.apache.tools.ant.taskdefs.condition.Os
+
+allprojects {
+    group 'guoyuchuan'
+    version '1.0-SNAPSHOT'
+
+    apply plugin: 'java'
+    apply plugin: 'maven'
+
+    sourceCompatibility = 1.7
+    compileJava.options.encoding = 'UTF-8'
+
+
+
+    repositories {
+        maven {
+            url 'http://nexus.jobs.wn518.com:8081/nexus/content/groups/public/'
+        }
+    }
+
+    dependencies {
+        compile fileTree(dir: 'libs', include: ['*.jar'])
+        compile 'org.apache.thrift:libthrift:0.9.3'
+        // 依赖服务端基本的rpc的server和client,主要是启动部分相关的东西
+        compile 'weinong:thrift-base-rpc:1.0.2-SNAPSHOT'
+        compile 'apache-beanutils:commons-beanutils:1.7.0'
+    }
+
+    uploadArchives {
+        repositories.mavenDeployer {
+//		repository(url: 'http://nexus.jobs.wn518.com:8081/nexus/content/repositories/releases/') {
+//			authentication(userName: "deployment", password: "deployment")
+//		}
+            // 上传到开发环境仓库
+            snapshotRepository(url: 'http://nexus.jobs.wn518.com:8081/nexus/content/repositories/snapshots/') {
+                authentication(userName: "deployment", password: "deployment")
+            }
+        }
+    }
+}
+project(':helloword-common-bean') {
+
+    version '1.0.1-SNAPSHOT'
+    group 'weinong'
+
+    sourceSets {
+        main.java.srcDirs = ['/src']
+    }
+
+    // 判断操作系统环境执行thrift.exe生成javabean
+    if (Os.isFamily(Os.FAMILY_WINDOWS)) {
+        exec {
+            workingDir './'
+            commandLine 'cmd', '/c', 'thrift-0.9.3.exe -r -out ./src -gen java  ./thrift-idl/api.thrift'
+        }
+        println "WINDOWS "
+    } else if (Os.isFamily(Os.FAMILY_UNIX)) {
+        exec {
+            workingDir './'
+            commandLine 'thrift -r -out ./src -gen java  ./thrift-idl/api.thrift'
+        }
+        println "LINUX "
+    }
+}
+
+project(':helloword-server') {
+    apply plugin: 'application'
+
+    mainClassName = 'com.gyc.server.RpcServer'
+
+    sourceSets {
+        main.java.srcDirs = ['/src']
+    }
+    dependencies {
+        // 模拟依赖项目
+        compile  project(':user-rpc-test')
+        compile  project(':helloword-common-bean')
+    }
+}
+
+project(':helloword-client') {
+    version '1.0.1-SNAPSHOT'
+    group 'weinong'
+    // apply plugin: 'application'
+
+    sourceSets {
+        main.java.srcDirs = ['/src']
+    }
+
+    dependencies {
+        compile  fileTree(dir: 'libs', include: ['*.jar'])
+        compile  project(':helloword-common-bean')
+    }
+}
