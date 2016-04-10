@@ -2,7 +2,5 @@ rootProject.name = 'helloword'
 include 'helloword-server'
 include 'helloword-client'
 include 'helloword-common-bean'
-include 'user-rpc-test'
 
-project(':user-rpc-test').projectDir = new File(settingsDir, '../user-rpc-test')
 
