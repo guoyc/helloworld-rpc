@@ -73,7 +73,7 @@ project(':helloword-server') {
     }
     dependencies {
         // 模拟依赖项目
-        compile  project(':user-rpc-test')
+        // compile  project(':user-rpc-test')
         compile  project(':helloword-common-bean')
     }
 }
